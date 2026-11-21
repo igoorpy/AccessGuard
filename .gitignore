@@ -1,0 +1,48 @@
+# Build outputs
+/target/
+/out/
+/build/
+
+# IDE
+/.idea/
+/*.iml
+/*.ipr
+/*.iws
+/.vscode/
+/*.swp
+/*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+/pgdata/
+
+# Maven wrapper
+/mvnw
+/mvnw.cmd
+/.mvn/wrapper/maven-wrapper.jar
+
+# AI/Assistant internal files (never commit)
+CLAUDE.md
+docs/superpowers/
+
+# Test outputs
+/test-results/
+/playwright-report/
+/coverage/
+
+# Temporary
+*.tmp
+*.temp

@@ -1,0 +1,42 @@
+# Build outputs
+target/
+out/
+build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# AI/Assistant internal files
+CLAUDE.md
+docs/superpowers/
+
+# Test outputs
+test-results/
+playwright-report/
+coverage/
+
+# Maven wrapper (use host's)
+mvnw
+mvnw.cmd
+.mvn/
+
+# Temporary
+*.tmp
+*.temp

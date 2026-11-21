@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DB:accessguard}
+    username: ${POSTGRES_USER:accessguard}
+    password: ${POSTGRES_PASSWORD:accessguard}
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.accessguard: INFO
+    org.springframework.security: INFO
