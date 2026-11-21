@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -33,12 +34,14 @@ public class BruteForceAuthenticationProvider extends DaoAuthenticationProvider 
                                              SessaoRepository sessaoRepository,
                                              AuditService auditService,
                                              HttpServletRequest httpServletRequest,
-                                             PasswordEncoder passwordEncoder) {
+                                             PasswordEncoder passwordEncoder,
+                                             UserDetailsService userDetailsService) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.auditService = auditService;
         this.httpServletRequest = httpServletRequest;
         this.passwordEncoder = passwordEncoder;
+        setUserDetailsService(userDetailsService);
     }
 
     @Override
@@ -89,9 +92,7 @@ public class BruteForceAuthenticationProvider extends DaoAuthenticationProvider 
         Sessao sessao = new Sessao(usuario, sessionId, ip, getUserAgent());
         sessaoRepository.save(sessao);
 
-        // Audita login bem-sucedido
-        auditService.registrar(usuario.getEmail(), ip, EventoAuditoria.LOGIN_SUCESSO, "Login realizado com sucesso");
-
+        
         // Retorna Authentication com Authorities
         return new UsernamePasswordAuthenticationToken(
                 new AccessGuardUserDetails(usuario),

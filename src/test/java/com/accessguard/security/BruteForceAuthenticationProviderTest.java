@@ -18,6 +18,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -44,6 +45,9 @@ class BruteForceAuthenticationProviderTest {
     @Mock
     private HttpServletRequest httpServletRequest;
 
+    @Mock
+    private UserDetailsService userDetailsService;
+
     private BruteForceAuthenticationProvider provider;
     private PasswordEncoder passwordEncoder;
     private Usuario usuario;
@@ -65,7 +69,7 @@ class BruteForceAuthenticationProviderTest {
             throw new RuntimeException(e);
         }
 
-        provider = new BruteForceAuthenticationProvider(usuarioRepository, sessaoRepository, auditService, httpServletRequest, passwordEncoder);
+        provider = new BruteForceAuthenticationProvider(usuarioRepository, sessaoRepository, auditService, httpServletRequest, passwordEncoder, userDetailsService);
 
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.100");
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 Test");
@@ -92,13 +96,8 @@ class BruteForceAuthenticationProviderTest {
         assertEquals(StatusUsuario.ATIVO, usuario.getStatus());
         assertNotNull(usuario.getUltimoLoginEm());
 
-        // Verifica auditoria de sucesso
-        ArgumentCaptor<String> emailCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> ipCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<EventoAuditoria> eventoCaptor = ArgumentCaptor.forClass(EventoAuditoria.class);
-        verify(auditService).registrar(emailCaptor.capture(), ipCaptor.capture(), eventoCaptor.capture(), anyString());
-        assertEquals("teste@accessguard.com", emailCaptor.getValue());
-        assertEquals(EventoAuditoria.LOGIN_SUCESSO, eventoCaptor.getValue());
+        // Provider não audita LOGIN_SUCESSO (é responsabilidade do AuthenticationAuditListener via evento)
+        verify(auditService, never()).registrar(anyString(), anyString(), eq(EventoAuditoria.LOGIN_SUCESSO), anyString());
     }
 
     @Test
