@@ -19,7 +19,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <testcontainers.version>1.20.1</testcontainers.version>
         <rest-assured.version>5.5.0</rest-assured.version>
-        <playwright.version>1.46.0</playwright.version>
+        <playwright.version>1.38.0</playwright.version>
+        <playwright.skip>true</playwright.skip>
+        <flyway.version>10.22.0</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -37,6 +39,11 @@
                 <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -125,13 +132,14 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Playwright -->
+        <!-- Playwright - add when E2E tests are implemented
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright-junit5</artifactId>
             <version>${playwright.version}</version>
             <scope>test</scope>
         </dependency>
+    -->
     </dependencies>
 
     <build>
@@ -189,6 +197,26 @@
                         <include>**/*E2ETest.java</include>
                     </includes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <url>jdbc:postgresql://localhost:5432/accessguard</url>
+                    <user>accessguard</user>
+                    <password>accessguard</password>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.7.3</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
