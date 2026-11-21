@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Admin Usuários - AccessGuard</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: content}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Administração de Usuários</h1>
+            <a href="/admin/usuarios/novo" class="btn btn-primary" data-testid="btn-novo-usuario">
+                <i class="bi bi-plus-lg"></i> Novo Usuário
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3" data-testid="search-form">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" name="search" placeholder="Buscar por email ou nome" th:value="${search}" data-testid="input-search">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-outline-primary w-100" data-testid="btn-search">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/admin/usuarios" class="btn btn-outline-secondary w-100" data-testid="btn-limpar">
+                            <i class="bi bi-x-lg"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" data-testid="tabela-usuarios">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Perfil</th>
+                                <th>Status</th>
+                                <th>Tentativas</th>
+                                <th>Último Login</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${usuarios.content}" data-testid="usuario-row">
+                                <td th:text="${u.nome}"></td>
+                                <td th:text="${u.email}"></td>
+                                <td><span class="badge bg-secondary" th:text="${u.role}"></span></td>
+                                <td>
+                                    <span class="badge" th:class="${u.status == 'ATIVO' ? 'bg-success' : 'bg-danger'}" th:text="${u.status}"></span>
+                                </td>
+                                <td th:text="${u.tentativasFalha}"></td>
+                                <td th:text="${u.ultimoLoginEm != null ? #temporals.format(u.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a th:href="@{/admin/usuarios/{id}/editar(id=${u.id})}" class="btn btn-outline-primary" data-testid="btn-editar" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form th:if="${u.status == 'BLOQUEADO'}" th:action="@{/admin/usuarios/{id}/desbloquear(id=${u.id})}" method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline-success" data-testid="btn-desbloquear" title="Desbloquear">
+                                                <i class="bi bi-unlock"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${usuarios.empty}">
+                                <td colspan="7" class="text-center py-4 text-muted">Nenhum usuário encontrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Pagination -->
+            <div th:if="${usuarios.totalPages > 1}" class="card-footer">
+                <nav aria-label="Pagination">
+                    <ul class="pagination mb-0 justify-content-center">
+                        <li class="page-item" th:classappend="${usuarios.first ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/usuarios(page=0, size=${usuarios.size}, search=${search})}" data-testid="page-first">Primeira</a>
+                        </li>
+                        <li class="page-item" th:classappend="${!usuarios.hasPrevious() ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/usuarios(page=${usuarios.number-1}, size=${usuarios.size}, search=${search})}" data-testid="page-prev">Anterior</a>
+                        </li>
+                        <li class="page-item disabled"><span class="page-link" th:text="${usuarios.number + 1} + ' / ' + ${usuarios.totalPages}"></span></li>
+                        <li class="page-item" th:classappend="${!usuarios.hasNext() ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/usuarios(page=${usuarios.number+1}, size=${usuarios.size}, search=${search})}" data-testid="page-next">Próxima</a>
+                        </li>
+                        <li class="page-item" th:classappend="${usuarios.last ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/usuarios(page=${usuarios.totalPages-1}, size=${usuarios.size}, search=${search})}" data-testid="page-last">Última</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

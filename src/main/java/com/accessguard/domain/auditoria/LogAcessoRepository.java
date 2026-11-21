@@ -43,4 +43,22 @@ public interface LogAcessoRepository extends JpaRepository<LogAcesso, Long> {
             @Param("inicio") Instant inicio,
             @Param("fim") Instant fim
     );
+
+    @Query("""
+        SELECT l FROM LogAcesso l
+        WHERE (:email IS NULL OR l.usuarioEmail = :email)
+          AND (:evento IS NULL OR l.evento = :evento)
+          AND (:inicio IS NULL OR l.criadoEm >= :inicio)
+          AND (:fim IS NULL OR l.criadoEm <= :fim)
+          AND (:ip IS NULL OR l.ip = :ip)
+        ORDER BY l.criadoEm DESC
+    """)
+    Page<LogAcesso> findWithFilters(
+            @Param("email") String email,
+            @Param("evento") String evento,
+            @Param("inicio") Instant inicio,
+            @Param("fim") Instant fim,
+            @Param("ip") String ip,
+            Pageable pageable
+    );
 }

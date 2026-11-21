@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Auditoria - AccessGuard</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: content}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Auditoria de Acessos</h1>
+        </div>
+
+        <!-- Filters Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3" data-testid="filtros-form">
+                    <div class="col-md-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="email" name="email"
+                               th:value="${email}" placeholder="Filtrar por email" data-testid="input-email">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="evento" class="form-label">Evento</label>
+                        <select class="form-select" id="evento" name="evento" data-testid="select-evento">
+                            <option value="">Todos</option>
+                            <option th:each="e : ${eventos}" th:value="${e}" th:selected="${evento == e}" th:text="${e}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="ip" class="form-label">IP</label>
+                        <input type="text" class="form-control" id="ip" name="ip"
+                               th:value="${ip}" placeholder="Filtrar por IP" data-testid="input-ip">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="dataInicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="dataInicio" name="dataInicio"
+                               th:value="${dataInicio}" data-testid="input-data-inicio">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="dataFim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="dataFim" name="dataFim"
+                               th:value="${dataFim}" data-testid="input-data-fim">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" data-testid="btn-filtrar">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <a href="/auditoria" class="btn btn-outline-secondary btn-sm" data-testid="btn-limpar-filtros">
+                            <i class="bi bi-x-lg"></i> Limpar Filtros
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" data-testid="tabela-logs">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Usuário</th>
+                                <th>IP</th>
+                                <th>Evento</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logs.content}" data-testid="log-row">
+                                <td th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                                <td th:text="${log.usuarioEmail != null ? log.usuarioEmail : '-' }"></td>
+                                <td th:text="${log.ip}"></td>
+                                <td>
+                                    <span class="badge" th:class="{
+                                        'bg-success': ${log.evento == 'LOGIN_SUCESSO'},
+                                        'bg-danger': ${log.evento == 'LOGIN_FALHA'} or ${log.evento == 'USUARIO_INEXISTENTE'} or ${log.evento == 'CONTA_BLOQUEADA'},
+                                        'bg-warning text-dark': ${log.evento == 'CONTA_DESBLOQUEADA'},
+                                        'bg-info': ${log.evento == 'SENHA_ALTERADA'} or ${log.evento == 'PERFIL_ALTERADO'},
+                                        'bg-secondary': ${log.evento == 'SESSAO_ENCERRADA'}
+                                    }" th:text="${log.evento}"></span>
+                                </td>
+                                <td th:text="${log.detalhes != null ? log.detalhes : '-' }" class="text-truncate" style="max-width: 300px;"></td>
+                            </tr>
+                            <tr th:if="${logs.empty}">
+                                <td colspan="5" class="text-center py-4 text-muted">Nenhum log encontrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Pagination -->
+            <div th:if="${logs.totalPages > 1}" class="card-footer">
+                <nav aria-label="Pagination">
+                    <ul class="pagination mb-0 justify-content-center">
+                        <li class="page-item" th:classappend="${logs.first ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/auditoria(page=0, size=${logs.size}, email=${email}, evento=${evento}, dataInicio=${dataInicio}, dataFim=${dataFim}, ip=${ip})}" data-testid="page-first">Primeira</a>
+                        </li>
+                        <li class="page-item" th:classappend="${!logs.hasPrevious() ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/auditoria(page=${logs.number-1}, size=${logs.size}, email=${email}, evento=${evento}, dataInicio=${dataInicio}, dataFim=${dataFim}, ip=${ip})}" data-testid="page-prev">Anterior</a>
+                        </li>
+                        <li class="page-item disabled"><span class="page-link" th:text="${logs.number + 1} + ' / ' + ${logs.totalPages}"></span></li>
+                        <li class="page-item" th:classappend="${!logs.hasNext() ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/auditoria(page=${logs.number+1}, size=${logs.size}, email=${email}, evento=${evento}, dataInicio=${dataInicio}, dataFim=${dataFim}, ip=${ip})}" data-testid="page-next">Próxima</a>
+                        </li>
+                        <li class="page-item" th:classappend="${logs.last ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/auditoria(page=${logs.totalPages-1}, size=${logs.size}, email=${email}, evento=${evento}, dataInicio=${dataInicio}, dataFim=${dataFim}, ip=${ip})}" data-testid="page-last">Última</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

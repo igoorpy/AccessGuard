@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6" lang="pt-BR">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Meu Perfil - AccessGuard</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: content}">
+        <h1 class="mb-4">Meu Perfil</h1>
+
+        <div class="row">
+            <!-- Informações do Perfil -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informações</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/perfil/atualizar-nome}" method="post" data-testid="form-nome">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome</label>
+                                <input type="text" class="form-control" id="nome" name="nome"
+                                       th:value="${usuario.nome}" required data-testid="input-nome">
+                            </div>
+                            <button type="submit" class="btn btn-primary" data-testid="btn-atualizar-nome">
+                                <i class="bi bi-save"></i> Salvar Nome
+                            </button>
+                        </form>
+                        <hr>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Email</dt>
+                            <dd class="col-sm-8" th:text="${usuario.email}"></dd>
+                            <dt class="col-sm-4">Perfil</dt>
+                            <dd class="col-sm-8"><span class="badge bg-secondary" th:text="${usuario.role}"></span></dd>
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8"><span class="badge" th:class="${usuario.status == 'ATIVO' ? 'bg-success' : 'bg-danger'}" th:text="${usuario.status}"></span></dd>
+                            <dt class="col-sm-4">Último Login</dt>
+                            <dd class="col-sm-8" th:text="${#temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm')}"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alterar Senha -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Alterar Senha</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/perfil/alterar-senha}" method="post" data-testid="form-senha">
+                            <div class="mb-3">
+                                <label for="senhaAtual" class="form-label">Senha Atual <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="senhaAtual" name="senhaAtual" required data-testid="input-senha-atual">
+                            </div>
+                            <div class="mb-3">
+                                <label for="novaSenha" class="form-label">Nova Senha <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="novaSenha" name="novaSenha" required minlength="8" data-testid="input-nova-senha">
+                                <div class="form-text">Mínimo 8 caracteres</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmarSenha" class="form-label">Confirmar Nova Senha <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required data-testid="input-confirmar-senha">
+                            </div>
+                            <button type="submit" class="btn btn-primary" data-testid="btn-alterar-senha">
+                                <i class="bi bi-key"></i> Alterar Senha
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -95,6 +95,10 @@ public class Usuario {
         return status;
     }
 
+    public void setStatus(StatusUsuario status) {
+        this.status = status;
+    }
+
     public int getTentativasFalha() {
         return tentativasFalha;
     }
