@@ -19,6 +19,7 @@ public interface LogAcessoRepository extends JpaRepository<LogAcesso, Long> {
           AND (:evento IS NULL OR l.evento = :evento)
           AND (:inicio IS NULL OR l.criadoEm >= :inicio)
           AND (:fim IS NULL OR l.criadoEm <= :fim)
+          AND (:ip IS NULL OR l.ip = :ip)
         ORDER BY l.criadoEm DESC
     """)
     Page<LogAcesso> findByFilters(
@@ -26,6 +27,7 @@ public interface LogAcessoRepository extends JpaRepository<LogAcesso, Long> {
             @Param("evento") EventoAuditoria evento,
             @Param("inicio") Instant inicio,
             @Param("fim") Instant fim,
+            @Param("ip") String ip,
             Pageable pageable
     );
 
