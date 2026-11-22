@@ -21,11 +21,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auditoria")
 @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR')")
-public class AuditoriaController {
+public class AuditoriaApiController {
 
     private final LogAcessoRepository logAcessoRepository;
 
-    public AuditoriaController(LogAcessoRepository logAcessoRepository) {
+    public AuditoriaApiController(LogAcessoRepository logAcessoRepository) {
         this.logAcessoRepository = logAcessoRepository;
     }
 

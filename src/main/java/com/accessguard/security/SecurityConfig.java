@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,18 +21,41 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                    AuthenticationProvider authenticationProvider,
-                                                    UserDetailsService userDetailsService,
-                                                    AuthenticationSuccessHandler successHandler,
-                                                    AuthenticationFailureHandler failureHandler) throws Exception {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http,
+                                               AuthenticationProvider authenticationProvider,
+                                               UserDetailsService userDetailsService) throws Exception {
         http
+                .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/webjars/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/validate").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/auditoria/**").hasAnyRole("ADMIN", "AUDITOR")
                         .requestMatchers("/api/perfil/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> response.sendError(401))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(403))
+                )
+                .authenticationProvider(authenticationProvider)
+                .userDetailsService(userDetailsService);
+
+        return http.build();
+    }
+
+    @Bean
+    public SecurityFilterChain webFilterChain(HttpSecurity http,
+                                               AuthenticationProvider authenticationProvider,
+                                               UserDetailsService userDetailsService,
+                                               AuthenticationSuccessHandler successHandler,
+                                               AuthenticationFailureHandler failureHandler) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/css/**", "/js/**", "/webjars/**", "/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/auditoria/**").hasAnyRole("ADMIN", "AUDITOR")
                         .requestMatchers("/perfil/**", "/dashboard").authenticated()
@@ -79,7 +103,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(BruteForceAuthenticationProvider provider) {
+        return new org.springframework.security.authentication.ProviderManager(provider);
     }
 }

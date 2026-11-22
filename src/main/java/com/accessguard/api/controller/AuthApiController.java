@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthApiController {
 
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
 
-    public AuthController(AuthenticationManager authenticationManager, UsuarioRepository usuarioRepository) {
+    public AuthApiController(AuthenticationManager authenticationManager, UsuarioRepository usuarioRepository) {
         this.authenticationManager = authenticationManager;
         this.usuarioRepository = usuarioRepository;
     }

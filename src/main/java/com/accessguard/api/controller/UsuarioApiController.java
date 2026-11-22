@@ -26,12 +26,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/admin/usuarios")
 @PreAuthorize("hasRole('ADMIN')")
-public class UsuarioController {
+public class UsuarioApiController {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioApiController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
     }
