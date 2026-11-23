@@ -1,54 +1,50 @@
 <!DOCTYPE html>
-<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6" lang="pt-BR">
-<head th:replace="~{fragments/layout :: head}">
-    <title>Dashboard - AccessGuard</title>
-</head>
-<body>
-    <div th:replace="~{fragments/layout :: content}">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h1 class="mb-0">Dashboard</h1>
-            <span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}">COLABORADOR</span>
-        </div>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6" lang="pt-BR"
+      th:replace="~{fragments/layout :: layout('Dashboard', ~{::content})}">
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="mb-0">Dashboard</h1>
+        <span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}">COLABORADOR</span>
+    </div>
 
-        <div class="row mb-4">
-            <div class="col-md-6 mb-4 mb-md-0">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-person-circle me-2"></i>Informações do Usuário</h5>
-                        <dl class="row mb-0">
-                            <dt class="col-sm-4">Nome</dt>
-                            <dd class="col-sm-8" th:text="${usuario.nome}"></dd>
-                            <dt class="col-sm-4">Email</dt>
-                            <dd class="col-sm-8" th:text="${usuario.email}"></dd>
-                            <dt class="col-sm-4">Perfil</dt>
-                            <dd class="col-sm-8"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
-                            <dt class="col-sm-4">Status</dt>
-                            <dd class="col-sm-8"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
-                            <dt class="col-sm-4">Último Login</dt>
-                            <dd class="col-sm-8" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
-                        </dl>
-                    </div>
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-circle me-2"></i>Informações do Usuário</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8" th:text="${usuario.nome}"></dd>
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8" th:text="${usuario.email}"></dd>
+                        <dt class="col-sm-4">Perfil</dt>
+                        <dd class="col-sm-8"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
+                        <dt class="col-sm-4">Último Login</dt>
+                        <dd class="col-sm-8" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
+                    </dl>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
-                        <div class="d-grid gap-2">
-                            <a href="/perfil" class="btn btn-outline-primary" data-testid="btn-perfil">
-                                <i class="bi bi-person me-2"></i> Meu Perfil
-                            </a>
-                            <a sec:authorize="hasRole('ADMIN')" href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-admin">
-                                <i class="bi bi-people-gear me-2"></i> Admin Usuários
-                            </a>
-                            <a sec:authorize="hasAnyRole('ADMIN', 'AUDITOR')" href="/auditoria" class="btn btn-outline-secondary" data-testid="btn-auditoria">
-                                <i class="bi bi-journal-text me-2"></i> Auditoria
-                            </a>
-                        </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+                    <div class="d-grid gap-2">
+                        <a href="/perfil" class="btn btn-outline-primary" data-testid="btn-perfil">
+                            <i class="bi bi-person me-2"></i> Meu Perfil
+                        </a>
+                        <a sec:authorize="hasRole('ADMIN')" href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-admin">
+                            <i class="bi bi-people-gear me-2"></i> Admin Usuários
+                        </a>
+                        <a sec:authorize="hasAnyRole('ADMIN', 'AUDITOR')" href="/auditoria" class="btn btn-outline-secondary" data-testid="btn-auditoria">
+                            <i class="bi bi-journal-text me-2"></i> Auditoria
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
+</div>
 </html>
