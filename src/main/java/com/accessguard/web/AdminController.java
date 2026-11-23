@@ -55,6 +55,8 @@ public class AdminController {
     public String novoUsuarioForm(Model model) {
         model.addAttribute("usuario", new UsuarioForm());
         model.addAttribute("roles", Role.values());
+        model.addAttribute("statuses", StatusUsuario.values());
+        model.addAttribute("isEdit", false);
         return "admin/usuario-form";
     }
 

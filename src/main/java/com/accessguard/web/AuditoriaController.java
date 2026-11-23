@@ -45,7 +45,9 @@ public class AuditoriaController {
         Instant inicio = parseDate(dataInicio, true) != null ? parseDate(dataInicio, true).atZone(ZoneId.systemDefault()).toInstant() : null;
         Instant fim = parseDate(dataFim, false) != null ? parseDate(dataFim, false).atZone(ZoneId.systemDefault()).toInstant() : null;
 
-        Page<LogAcesso> logs = logAcessoRepository.findWithFilters(email, evento, inicio, fim, ip, pageable);
+        EventoAuditoria eventoEnum = parseEvento(evento);
+
+        Page<LogAcesso> logs = logAcessoRepository.findWithFilters(email, eventoEnum, inicio, fim, ip, pageable);
 
         model.addAttribute("logs", logs);
         model.addAttribute("email", email);
@@ -69,6 +71,17 @@ public class AuditoriaController {
                 return date.atTime(23, 59, 59);
             }
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private EventoAuditoria parseEvento(String evento) {
+        if (evento == null || evento.isBlank()) {
+            return null;
+        }
+        try {
+            return EventoAuditoria.valueOf(evento);
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }

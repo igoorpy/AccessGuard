@@ -57,7 +57,7 @@ public interface LogAcessoRepository extends JpaRepository<LogAcesso, Long> {
     """)
     Page<LogAcesso> findWithFilters(
             @Param("email") String email,
-            @Param("evento") String evento,
+            @Param("evento") EventoAuditoria evento,
             @Param("inicio") Instant inicio,
             @Param("fim") Instant fim,
             @Param("ip") String ip,
