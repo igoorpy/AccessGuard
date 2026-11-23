@@ -123,7 +123,7 @@
             </ul>
             <hr style="border-color: var(--border-color);">
             <div class="text-center">
-                <form action="/logout" method="post" data-testid="logout-form">
+                <form th:action="@{/logout}" method="post" data-testid="logout-form">
                     <button type="submit" class="btn btn-outline-danger w-100" data-testid="btn-logout">
                         <i class="bi bi-box-arrow-right"></i> Sair
                     </button>

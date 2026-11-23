@@ -62,6 +62,10 @@ public class AdminController {
 
     @PostMapping("/usuarios/novo")
     public String criarUsuario(@ModelAttribute UsuarioForm form, RedirectAttributes redirectAttributes) {
+        if (form.getSenha() == null || form.getSenha().isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Senha é obrigatória");
+            return "redirect:/admin/usuarios/novo";
+        }
         if (usuarioRepository.findByEmail(form.getEmail()).isPresent()) {
             redirectAttributes.addFlashAttribute("error", "Email já cadastrado");
             return "redirect:/admin/usuarios/novo";
@@ -125,19 +129,32 @@ public class AdminController {
         return "redirect:/admin/usuarios";
     }
 
-    public record UsuarioForm(String email, String senha, String nome, Role role, StatusUsuario status) {
-        public UsuarioForm() {
-            this(null, null, null, null, null);
-        }
+    public static class UsuarioForm {
+        private String email;
+        private String senha;
+        private String nome;
+        private Role role;
+        private StatusUsuario status;
 
-        public UsuarioForm(String email, String senha, String nome, Role role) {
-            this(email, senha, nome, role, null);
+        public UsuarioForm() {}
+
+        public UsuarioForm(String email, String senha, String nome, Role role, StatusUsuario status) {
+            this.email = email;
+            this.senha = senha;
+            this.nome = nome;
+            this.role = role;
+            this.status = status;
         }
 
         public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
         public String getSenha() { return senha; }
+        public void setSenha(String senha) { this.senha = senha; }
         public String getNome() { return nome; }
+        public void setNome(String nome) { this.nome = nome; }
         public Role getRole() { return role; }
+        public void setRole(Role role) { this.role = role; }
         public StatusUsuario getStatus() { return status; }
+        public void setStatus(StatusUsuario status) { this.status = status; }
     }
 }
