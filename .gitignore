@@ -46,3 +46,6 @@ docs/superpowers/
 # Temporary
 *.tmp
 *.temp
+
+# Resumos internos (não comitar)
+RESUMO_*.md
