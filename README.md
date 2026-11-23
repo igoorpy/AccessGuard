@@ -1,107 +1,189 @@
 # AccessGuard
 
-Sistema corporativo de gestão de identidades e controle de acesso (IAM) com RBAC, proteção contra força bruta e auditoria imutável.
+Sistema corporativo de IAM (Identity and Access Management) com RBAC, proteção contra força bruta e log de auditoria imutável.
+
+## Visão Geral
+
+O AccessGuard é uma aplicação Spring Boot que implementa controle de acesso baseado em papéis (RBAC), proteção automática contra ataques de força bruta com bloqueio de conta após 3 tentativas falhas, e trilha de auditoria completa de eventos de autenticação e autorização.
+
+### Funcionalidades Principais
+
+- **RBAC**: Três papéis — `ADMIN`, `AUDITOR`, `COLABORADOR`
+- **Proteção contra Força Bruta**: Bloqueio automático após 3 tentativas de senha incorreta; desbloqueio apenas por administrador
+- **Auditoria Imutável**: Log de todos os eventos (login sucesso/falha, conta bloqueada, usuário inexistente, ações administrativas)
+- **Autenticação Stateless JWT**: API REST com tokens JWT (expiração 30 min)
+- **Interface Web**: Thymeleaf com fragmentos reutilizáveis
+- **Documentação OpenAPI/Swagger**: Disponível em `/swagger-ui.html`
 
 ## Stack Tecnológica
 
-- **Java 21** (LTS)
-- **Spring Boot 3.3.x**
-- **Spring Security 6** (session-based, form login)
-- **Spring Data JPA** + **Hibernate**
-- **Thymeleaf** (server-side rendering)
-- **PostgreSQL 15** (via Docker Compose)
-- **springdoc-openapi** (Swagger UI)
-- **Flyway** (migrations)
-- **BCrypt** (password hashing)
+| Camada | Tecnologia |
+|--------|------------|
+| Framework | Spring Boot 3.3.x |
+| Segurança | Spring Security 6, JWT (jjwt 0.12.5) |
+| Persistência | Spring Data JPA, Hibernate, PostgreSQL (produção) / H2 (testes) |
+| Migração | Flyway |
+| Template | Thymeleaf |
+| Documentação | Springdoc OpenAPI 2.6 |
+| Testes | JUnit 5, MockMvc, Testcontainers, REST Assured, Playwright |
+| Build | Maven Wrapper |
 
-## Perfis de Acesso (RBAC)
+## Diagrama: Fluxo de Bloqueio por Força Bruta
 
-| Role | Descrição |
-|------|-----------|
-| `ADMIN` | Acesso total: gerencia usuários, roles, desbloqueio, visualiza todos os logs |
-| `AUDITOR` | Leitura: painel de auditoria e logs de segurança (sem escrita) |
-| `COLABORADOR` | Básico: próprio perfil, histórico de acessos, troca de senha, encerrar sessões |
+```mermaid
+flowchart TD
+    A[Requisição POST /api/auth/login] --> B{Usuário existe?}
+    B -- Não --> C[Auditar USUARIO_INEXISTENTE]
+    C --> D[Retornar 401 Credenciais inválidas]
+    B -- Sim --> E{Conta BLOQUEADA?}
+    E -- Sim --> F[Lançar LockedException]
+    F --> D
+    E -- Não --> G{Senha correta?}
+    G -- Não --> H[Incrementar tentativas_falha]
+    H --> I{tentativas >= 3?}
+    I -- Sim --> J[Status = BLOQUEADO]
+    J --> K[Auditar CONTA_BLOQUEADA]
+    K --> D
+    I -- Não --> L[Auditar LOGIN_FALHA]
+    L --> D
+    G -- Sim --> M[Resetar tentativas_falha = 0]
+    M --> N{Status era BLOQUEADO?}
+    N -- Sim --> O[Status = ATIVO]
+    N -- Não --> P[Manter status atual]
+    O --> Q[Atualizar ultimo_login_em]
+    P --> Q
+    Q --> R[Criar Sessão]
+    R --> S[Auditar LOGIN_SUCESSO via EventListener]
+    S --> T[Gerar JWT]
+    T --> U[Retornar 200 + token + userInfo]
+```
 
-## Proteção contra Força Bruta
+## Credenciais de Demonstração
 
-- 3 tentativas consecutivas de senha incorreta → conta **BLOQUEADA**
-- Desbloqueio **apenas manual por ADMIN**
-- Escopo: por conta (usuário), não por IP
-- Usuários inexistentes: log `USUARIO_INEXISTENTE` (sem bloqueio)
+| Email | Senha | Papel |
+|-------|-------|-------|
+| `admin@accessguard.com` | `Admin@123` | ADMIN |
+| `auditor@accessguard.com` | `Auditor@123` | AUDITOR |
+| `colab@accessguard.com` | `Colab@123` | COLABORADOR |
 
-## Auditoria
+> Os usuários são criados automaticamente na primeira execução se o banco estiver vazio (`DataInitializer`).
 
-Eventos gravados (append-only, retenção indefinida):
-- `LOGIN_SUCESSO`, `LOGIN_FALHA`, `USUARIO_INEXISTENTE`
-- `CONTA_BLOQUEADA`, `CONTA_DESBLOQUEADA`
-- `SENHA_ALTERADA`, `PERFIL_ALTERADO`, `SESSAO_ENCERRADA`
+## Endpoints e Rotas (RBAC)
 
-Painel com filtros (email, evento, datas), paginação (20/pág), exportação CSV.
+### API REST (`/api/**`) — Autenticação via Bearer Token JWT
 
-## Início Rápido
+| Método | Rota | Papéis Permitidos | Descrição |
+|--------|------|-------------------|-----------|
+| POST | `/api/auth/login` | Público | Autentica e retorna JWT |
+| POST | `/api/auth/logout` | Autenticado | Invalida contexto (stateless) |
+| POST | `/api/auth/validate` | Autenticado | Valida token e retorna userInfo |
+| GET | `/api/admin/usuarios` | ADMIN | Lista usuários paginada |
+| POST | `/api/admin/usuarios` | ADMIN | Cria novo usuário |
+| GET | `/api/admin/usuarios/{id}` | ADMIN | Busca usuário por ID |
+| PUT | `/api/admin/usuarios/{id}` | ADMIN | Atualiza usuário |
+| DELETE | `/api/admin/usuarios/{id}` | ADMIN | Exclui usuário |
+| POST | `/api/admin/usuarios/{id}/desbloquear` | ADMIN | Desbloqueia conta bloqueada |
+| GET | `/api/auditoria` | ADMIN, AUDITOR | Lista logs de auditoria paginada |
+| GET | `/api/perfil` | Autenticado | Dados do usuário logado |
+| PUT | `/api/perfil` | Autenticado | Atualiza nome/email próprio |
+| PUT | `/api/perfil/senha` | Autenticado | Altera própria senha |
+
+### Interface Web (Thymeleaf) — Sessão com Cookie
+
+| Rota | Papéis Permitidos | Descrição |
+|------|-------------------|-----------|
+| `/login` | Público | Página de login |
+| `/logout` | Autenticado | Logout |
+| `/dashboard` | Todos autenticados | Painel principal |
+| `/perfil` | Todos autenticados | Perfil do usuário |
+| `/admin/usuarios` | ADMIN | Gestão de usuários |
+| `/auditoria` | ADMIN, AUDITOR | Visualização de logs |
+
+## Comandos
 
 ### Pré-requisitos
-- Docker + Docker Compose
-- Java 21 + Maven 3.9+ (ou use `./mvnw`)
+- Java 21+
+- Docker (para PostgreSQL) ou PostgreSQL local na porta 5432
 
-### Subir o banco
+### Subir banco de dados (Docker)
 ```bash
 docker compose up -d
 ```
 
-### Rodar a aplicação (perfil local)
+### Rodar aplicação (desenvolvimento)
 ```bash
 ./mvnw spring-boot:run
 ```
-Acesse: http://localhost:8080/login
+Acesse: http://localhost:8080  
+Swagger: http://localhost:8080/swagger-ui.html
 
-### Rodar com perfil Docker (app + banco no mesmo compose)
+### Rodar com perfil Docker (usa variáveis de ambiente do compose)
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=docker
 ```
 
-### Testes
+### Executar testes
 ```bash
-# Unitários + integração
+# Testes unitários + integração
 ./mvnw test
 
-# Build completo (inclui Testcontainers)
+# Build completo com Testcontainers (integração + contrato)
 ./mvnw verify
 ```
 
-### Swagger UI
-http://localhost:8080/swagger-ui.html
+### Migrações Flyway
+```bash
+# Aplicar migrações (produção)
+./mvnw flyway:migrate
+
+# Limpar e reaplicar (cuidado: apaga dados)
+./mvnw flyway:clean flyway:migrate
+```
 
 ## Estrutura do Projeto
 
 ```
-src/main/java/com/accessguard/
-├── AccessGuardApplication.java
-├── config/              # OpenAPI, Async, Actuator
-├── domain/
-│   ├── usuario/         # Usuario, Role, UsuarioRepository
-│   ├── auditoria/       # LogAcesso, EventoAuditoria, LogAcessoRepository
-│   └── sessao/          # Sessao, SessaoRepository
-├── security/            # UserDetails, AuthenticationProvider, SecurityConfig
-├── auditoria/           # AuditService, AuthenticationAuditListener
-└── web/
-    ├── LoginController.java
-    ├── DashboardController.java
-    ├── admin/UsuarioAdminController.java
-    ├── auditoria/AuditoriaController.java
-    └── perfil/PerfilController.java
+src/main/java/com/accessguard
+├── api
+│   ├── controller     # Controllers REST
+│   └── dto            # Records de request/response
+├── auditoria
+│   ├── AuditService / AuditServiceImpl
+│   └── AuthenticationAuditListener  # @Async event listener
+├── config
+│   ├── AsyncConfig              # @EnableAsync
+│   └── DataInitializer          # Carga inicial de usuários
+├── domain
+│   ├── auditoria    # EventoAuditoria, LogAcesso, LogAcessoRepository
+│   ├── sessao       # Sessao, SessaoRepository
+│   └── usuario      # Usuario, Role, StatusUsuario, UsuarioRepository
+├── security
+│   ├── AccessGuardUserDetails / UserDetailsService
+│   ├── BruteForceAuthenticationProvider  # Provider customizado
+│   ├── JwtUtil / JwtAuthenticationFilter
+│   ├── SecurityConfig           # 2 SecurityFilterChain (api + web)
+│   └── LoginSuccessHandler / LoginFailureHandler
+└── web
+    └── controllers    # Controllers Thymeleaf (Admin, Auditoria, Dashboard, Login, Perfil)
 ```
 
-## Variáveis de Ambiente (application-docker.yml)
+## Variáveis de Ambiente Principais
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `POSTGRES_HOST` | `localhost` | Host do PostgreSQL |
-| `POSTGRES_PORT` | `5432` | Porta do PostgreSQL |
-| `POSTGRES_DB` | `accessguard` | Nome do banco |
-| `POSTGRES_USER` | `accessguard` | Usuário |
-| `POSTGRES_PASSWORD` | `accessguard` | Senha |
+| `JWT_SECRET` | (chave fixa em application.yml) | Chave HMAC para assinar JWT (mín. 32 chars) |
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/accessguard` | URL do banco |
+| `SPRING_DATASOURCE_USERNAME` | `accessguard` | Usuário do banco |
+| `SPRING_DATASOURCE_PASSWORD` | `accessguard` | Senha do banco |
+
+## Observações de Segurança
+
+- Senhas armazenadas com BCrypt (cost default 10)
+- Tokens JWT expiram em 30 minutos (`accessguard.jwt.expiration`)
+- Contas bloqueadas só podem ser desbloqueadas por ADMIN via `POST /api/admin/usuarios/{id}/desbloquear`
+- Auditoria registra IP (considera `X-Forwarded-For`, `X-Real-IP`) e User-Agent
+- API REST é stateless; interface web usa sessão com cookie HttpOnly
 
 ## Licença
 
-Uso interno corporativo.
+Uso educacional / corporativo interno.
