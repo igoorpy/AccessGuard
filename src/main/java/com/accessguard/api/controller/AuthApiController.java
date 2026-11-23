@@ -5,16 +5,13 @@ import com.accessguard.api.dto.LoginResponse;
 import com.accessguard.domain.usuario.Usuario;
 import com.accessguard.domain.usuario.UsuarioRepository;
 import com.accessguard.security.AccessGuardUserDetails;
-import com.accessguard.security.LoginSuccessHandler;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.accessguard.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,10 +23,14 @@ public class AuthApiController {
 
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
+    private final JwtUtil jwtUtil;
 
-    public AuthApiController(AuthenticationManager authenticationManager, UsuarioRepository usuarioRepository) {
+    public AuthApiController(AuthenticationManager authenticationManager,
+                             UsuarioRepository usuarioRepository,
+                             JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
         this.usuarioRepository = usuarioRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/login")
@@ -42,6 +43,8 @@ public class AuthApiController {
         AccessGuardUserDetails userDetails = (AccessGuardUserDetails) authentication.getPrincipal();
         Usuario usuario = usuarioRepository.findByEmail(userDetails.getUsername()).orElseThrow();
 
+        String token = jwtUtil.generateToken(userDetails);
+
         LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo(
             usuario.getId(),
             usuario.getEmail(),
@@ -50,7 +53,7 @@ public class AuthApiController {
         );
 
         return ResponseEntity.ok(new LoginResponse(
-            "session-cookie",
+            token,
             "Bearer",
             1800L,
             userInfo
@@ -58,11 +61,8 @@ public class AuthApiController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            new SecurityContextLogoutHandler().logout(request, response, auth);
-        }
+    public ResponseEntity<Void> logout() {
+        SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
     }
 

@@ -1,14 +1,17 @@
 package com.accessguard.security;
 
+import com.accessguard.api.dto.LoginResponse;
 import com.accessguard.domain.usuario.Role;
 import com.accessguard.domain.usuario.Usuario;
 import com.accessguard.domain.usuario.UsuarioRepository;
 import com.accessguard.security.AccessGuardUserDetails;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -32,6 +36,9 @@ class SecurityIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private Usuario admin;
     private Usuario auditor;
     private Usuario colaborador;
@@ -39,8 +46,12 @@ class SecurityIntegrationTest {
     private AccessGuardUserDetails auditorDetails;
     private AccessGuardUserDetails colaboradorDetails;
 
+    private String adminToken;
+    private String auditorToken;
+    private String colaboradorToken;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         usuarioRepository.deleteAll();
 
         admin = new Usuario("admin@test.com", passwordEncoder.encode("Senha@123"), "Admin User", Role.ADMIN);
@@ -52,6 +63,22 @@ class SecurityIntegrationTest {
         adminDetails = new AccessGuardUserDetails(admin);
         auditorDetails = new AccessGuardUserDetails(auditor);
         colaboradorDetails = new AccessGuardUserDetails(colaborador);
+
+        // Obtém tokens JWT para cada role
+        adminToken = getToken("admin@test.com", "Senha@123");
+        auditorToken = getToken("auditor@test.com", "Senha@123");
+        colaboradorToken = getToken("colab@test.com", "Senha@123");
+    }
+
+    private String getToken(String email, String password) throws Exception {
+        String loginJson = String.format("{\"email\": \"%s\", \"password\": \"%s\"}", email, password);
+        String response = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        LoginResponse loginResponse = objectMapper.readValue(response, LoginResponse.class);
+        return loginResponse.token();
     }
 
     // ==================== RBAC: Web (Thymeleaf) ====================
@@ -120,24 +147,31 @@ class SecurityIntegrationTest {
     @Test
     void apiAdminUsuariosRequerAutenticacao() throws Exception {
         mockMvc.perform(get("/api/admin/usuarios"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
     @Test
     void apiAdminUsuariosColaboradorRetorna403() throws Exception {
-        mockMvc.perform(get("/api/admin/usuarios").with(user(colaboradorDetails)))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/usuarios")
+                        .header("Authorization", "Bearer " + colaboradorToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value("Forbidden"));
     }
 
     @Test
     void apiAdminUsuariosAuditorRetorna403() throws Exception {
-        mockMvc.perform(get("/api/admin/usuarios").with(user(auditorDetails)))
+        mockMvc.perform(get("/api/admin/usuarios")
+                        .header("Authorization", "Bearer " + auditorToken))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void apiAdminUsuariosAdminRetorna200() throws Exception {
-        mockMvc.perform(get("/api/admin/usuarios").with(user(adminDetails)))
+        mockMvc.perform(get("/api/admin/usuarios")
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -145,37 +179,45 @@ class SecurityIntegrationTest {
     @Test
     void apiAuditoriaRequerAutenticacao() throws Exception {
         mockMvc.perform(get("/api/auditoria"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
     @Test
     void apiAuditoriaAuditorRetorna200() throws Exception {
-        mockMvc.perform(get("/api/auditoria").with(user(auditorDetails)))
+        mockMvc.perform(get("/api/auditoria")
+                        .header("Authorization", "Bearer " + auditorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test
     void apiAuditoriaAdminRetorna200() throws Exception {
-        mockMvc.perform(get("/api/auditoria").with(user(adminDetails)))
+        mockMvc.perform(get("/api/auditoria")
+                        .header("Bearer " + adminToken))
                 .andExpect(status().isOk());
     }
 
     @Test
     void apiAuditoriaColaboradorRetorna403() throws Exception {
-        mockMvc.perform(get("/api/auditoria").with(user(colaboradorDetails)))
+        mockMvc.perform(get("/api/auditoria")
+                        .header("Authorization", "Bearer " + colaboradorToken))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void apiPerfilRequerAutenticacao() throws Exception {
         mockMvc.perform(get("/api/perfil"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
     @Test
     void apiPerfilAutenticadoRetorna200() throws Exception {
-        mockMvc.perform(get("/api/perfil").with(user(colaboradorDetails)))
+        mockMvc.perform(get("/api/perfil")
+                        .header("Authorization", "Bearer " + colaboradorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("colab@test.com"));
     }

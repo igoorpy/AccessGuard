@@ -6,7 +6,6 @@ import com.accessguard.domain.sessao.Sessao;
 import com.accessguard.domain.sessao.SessaoRepository;
 import com.accessguard.domain.usuario.Usuario;
 import com.accessguard.domain.usuario.UsuarioRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -17,7 +16,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Component
@@ -26,20 +28,17 @@ public class BruteForceAuthenticationProvider extends DaoAuthenticationProvider 
     private final UsuarioRepository usuarioRepository;
     private final SessaoRepository sessaoRepository;
     private final AuditService auditService;
-    private final HttpServletRequest httpServletRequest;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public BruteForceAuthenticationProvider(UsuarioRepository usuarioRepository,
                                              SessaoRepository sessaoRepository,
                                              AuditService auditService,
-                                             HttpServletRequest httpServletRequest,
                                              PasswordEncoder passwordEncoder,
                                              UserDetailsService userDetailsService) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.auditService = auditService;
-        this.httpServletRequest = httpServletRequest;
         this.passwordEncoder = passwordEncoder;
         setUserDetailsService(userDetailsService);
     }
@@ -88,11 +87,11 @@ public class BruteForceAuthenticationProvider extends DaoAuthenticationProvider 
         usuarioRepository.save(usuario);
 
         // Cria registro de sessão ativa
-        String sessionId = httpServletRequest.getSession().getId();
+        String sessionId = getSessionId();
         Sessao sessao = new Sessao(usuario, sessionId, ip, getUserAgent());
         sessaoRepository.save(sessao);
 
-        
+
         // Retorna Authentication com Authorities
         return new UsernamePasswordAuthenticationToken(
                 new AccessGuardUserDetails(usuario),
@@ -106,19 +105,32 @@ public class BruteForceAuthenticationProvider extends DaoAuthenticationProvider 
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
+    private HttpServletRequest getRequest() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return attrs != null ? attrs.getRequest() : null;
+    }
+
     private String getClientIp() {
-        String xForwardedFor = httpServletRequest.getHeader("X-Forwarded-For");
+        HttpServletRequest request = getRequest();
+        if (request == null) return "unknown";
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
         }
-        String xRealIp = httpServletRequest.getHeader("X-Real-IP");
+        String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty()) {
             return xRealIp;
         }
-        return httpServletRequest.getRemoteAddr();
+        return request.getRemoteAddr();
     }
 
     private String getUserAgent() {
-        return httpServletRequest.getHeader("User-Agent");
+        HttpServletRequest request = getRequest();
+        return request != null ? request.getHeader("User-Agent") : "unknown";
+    }
+
+    private String getSessionId() {
+        HttpServletRequest request = getRequest();
+        return request != null ? request.getSession().getId() : "unknown";
     }
 }

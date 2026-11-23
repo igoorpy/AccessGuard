@@ -63,6 +63,11 @@ management:
     env:
       enabled: true
 
+accessguard:
+  jwt:
+    secret: ${JWT_SECRET:accessguard-secret-key-change-in-production-min-32-chars-long-enough}
+    expiration: 1800000
+
 springdoc:
   api-docs:
     path: /v3/api-docs

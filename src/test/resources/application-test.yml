@@ -26,6 +26,11 @@ spring:
     init:
       mode: always
 
+accessguard:
+  jwt:
+    secret: test-secret-key-for-testing-purposes-only-32-chars-minimum
+    expiration: 1800000
+
 logging:
   level:
     com.accessguard: DEBUG

@@ -124,7 +124,9 @@ public class Usuario {
 
     public void registrarSucesso() {
         this.tentativasFalha = 0;
-        this.status = StatusUsuario.ATIVO;
+        if (this.status == StatusUsuario.BLOQUEADO) {
+            this.status = StatusUsuario.ATIVO;
+        }
         this.ultimoLoginEm = Instant.now();
     }
 

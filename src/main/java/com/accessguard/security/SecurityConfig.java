@@ -1,5 +1,7 @@
 package com.accessguard.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +28,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
                                                AuthenticationProvider authenticationProvider,
-                                               UserDetailsService userDetailsService) throws Exception {
+                                               UserDetailsService userDetailsService,
+                                               ObjectMapper objectMapper,
+                                               JwtAuthenticationFilter jwtFilter) throws Exception {
         http
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
@@ -38,11 +45,28 @@ public class SecurityConfig {
                 )
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> response.sendError(401))
-                        .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(403))
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            objectMapper.writeValue(response.getWriter(), Map.of(
+                                    "status", 401,
+                                    "error", "Unauthorized",
+                                    "message", "Credenciais inválidas ou ausentes"
+                            ));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            objectMapper.writeValue(response.getWriter(), Map.of(
+                                    "status", 403,
+                                    "error", "Forbidden",
+                                    "message", "Acesso negado"
+                            ));
+                        })
                 )
                 .authenticationProvider(authenticationProvider)
-                .userDetailsService(userDetailsService);
+                .userDetailsService(userDetailsService)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

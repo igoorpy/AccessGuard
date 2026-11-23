@@ -21,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
@@ -46,6 +48,9 @@ class BruteForceAuthenticationProviderTest {
     private HttpServletRequest httpServletRequest;
 
     @Mock
+    private ServletRequestAttributes servletRequestAttributes;
+
+    @Mock
     private UserDetailsService userDetailsService;
 
     private BruteForceAuthenticationProvider provider;
@@ -69,7 +74,11 @@ class BruteForceAuthenticationProviderTest {
             throw new RuntimeException(e);
         }
 
-        provider = new BruteForceAuthenticationProvider(usuarioRepository, sessaoRepository, auditService, httpServletRequest, passwordEncoder, userDetailsService);
+        // Configura RequestContextHolder para retornar o mock do HttpServletRequest
+        when(servletRequestAttributes.getRequest()).thenReturn(httpServletRequest);
+        RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+
+        provider = new BruteForceAuthenticationProvider(usuarioRepository, sessaoRepository, auditService, passwordEncoder, userDetailsService);
 
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.100");
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 Test");
