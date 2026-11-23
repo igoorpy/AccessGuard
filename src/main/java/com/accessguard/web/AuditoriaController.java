@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +19,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/auditoria")
@@ -47,7 +47,8 @@ public class AuditoriaController {
 
         EventoAuditoria eventoEnum = parseEvento(evento);
 
-        Page<LogAcesso> logs = logAcessoRepository.findWithFilters(email, eventoEnum, inicio, fim, ip, pageable);
+        Specification<LogAcesso> spec = buildSpecification(email, eventoEnum, inicio, fim, ip);
+        Page<LogAcesso> logs = logAcessoRepository.findAll(spec, pageable);
 
         model.addAttribute("logs", logs);
         model.addAttribute("email", email);
@@ -57,6 +58,30 @@ public class AuditoriaController {
         model.addAttribute("ip", ip);
         model.addAttribute("eventos", EventoAuditoria.values());
         return "auditoria/logs";
+    }
+
+    private Specification<LogAcesso> buildSpecification(String email, EventoAuditoria evento, Instant inicio, Instant fim, String ip) {
+        return (root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+
+            if (email != null && !email.isBlank()) {
+                predicates.add(cb.equal(root.get("usuarioEmail"), email));
+            }
+            if (evento != null) {
+                predicates.add(cb.equal(root.get("evento"), evento));
+            }
+            if (inicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("criadoEm"), inicio));
+            }
+            if (fim != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("criadoEm"), fim));
+            }
+            if (ip != null && !ip.isBlank()) {
+                predicates.add(cb.equal(root.get("ip"), ip));
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     private LocalDateTime parseDate(String dateStr, boolean isStart) {
