@@ -20,26 +20,29 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (usuarioRepository.count() == 0) {
-            Usuario admin = new Usuario(
+        if (usuarioRepository.findByEmail("admin@accessguard.com").isEmpty()) {
+            usuarioRepository.save(new Usuario(
                     "admin@accessguard.com",
                     passwordEncoder.encode("Admin@123"),
                     "Administrador",
                     Role.ADMIN
-            );
-            Usuario auditor = new Usuario(
+            ));
+        }
+        if (usuarioRepository.findByEmail("auditor@accessguard.com").isEmpty()) {
+            usuarioRepository.save(new Usuario(
                     "auditor@accessguard.com",
                     passwordEncoder.encode("Auditor@123"),
                     "Auditor",
                     Role.AUDITOR
-            );
-            Usuario colaborador = new Usuario(
+            ));
+        }
+        if (usuarioRepository.findByEmail("colab@accessguard.com").isEmpty()) {
+            usuarioRepository.save(new Usuario(
                     "colab@accessguard.com",
                     passwordEncoder.encode("Colab@123"),
                     "Colaborador",
                     Role.COLABORADOR
-            );
-            usuarioRepository.saveAll(java.util.List.of(admin, auditor, colaborador));
+            ));
         }
     }
 }

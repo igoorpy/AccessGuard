@@ -10,9 +10,9 @@
         <div class="row">
             <!-- Informações do Perfil -->
             <div class="col-md-6 mb-4">
-                <div class="card">
+                <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="mb-0">Informações</h5>
+                        <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Informações</h5>
                     </div>
                     <div class="card-body">
                         <form th:action="@{/perfil/atualizar-nome}" method="post" data-testid="form-nome">
@@ -22,19 +22,19 @@
                                        th:value="${usuario.nome}" required data-testid="input-nome">
                             </div>
                             <button type="submit" class="btn btn-primary" data-testid="btn-atualizar-nome">
-                                <i class="bi bi-save"></i> Salvar Nome
+                                <i class="bi bi-save me-2"></i> Salvar Nome
                             </button>
                         </form>
-                        <hr>
+                        <hr style="border-color: var(--border-color);">
                         <dl class="row mb-0">
                             <dt class="col-sm-4">Email</dt>
                             <dd class="col-sm-8" th:text="${usuario.email}"></dd>
                             <dt class="col-sm-4">Perfil</dt>
-                            <dd class="col-sm-8"><span class="badge bg-secondary" th:text="${usuario.role}"></span></dd>
+                            <dd class="col-sm-8"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
                             <dt class="col-sm-4">Status</dt>
-                            <dd class="col-sm-8"><span class="badge" th:class="${usuario.status == 'ATIVO' ? 'bg-success' : 'bg-danger'}" th:text="${usuario.status}"></span></dd>
+                            <dd class="col-sm-8"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
                             <dt class="col-sm-4">Último Login</dt>
-                            <dd class="col-sm-8" th:text="${#temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm')}"></dd>
+                            <dd class="col-sm-8" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
                         </dl>
                     </div>
                 </div>
@@ -42,27 +42,27 @@
 
             <!-- Alterar Senha -->
             <div class="col-md-6 mb-4">
-                <div class="card">
+                <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="mb-0">Alterar Senha</h5>
+                        <h5 class="mb-0"><i class="bi bi-key me-2"></i>Alterar Senha</h5>
                     </div>
                     <div class="card-body">
                         <form th:action="@{/perfil/alterar-senha}" method="post" data-testid="form-senha">
                             <div class="mb-3">
                                 <label for="senhaAtual" class="form-label">Senha Atual <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control" id="senhaAtual" name="senhaAtual" required data-testid="input-senha-atual">
+                                <input type="password" class="form-control" id="senhaAtual" name="senhaAtual" required data-testid="input-senha-atual" placeholder="Senha atual">
                             </div>
                             <div class="mb-3">
                                 <label for="novaSenha" class="form-label">Nova Senha <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control" id="novaSenha" name="novaSenha" required minlength="8" data-testid="input-nova-senha">
+                                <input type="password" class="form-control" id="novaSenha" name="novaSenha" required minlength="8" data-testid="input-nova-senha" placeholder="Nova senha (mín. 8 chars)">
                                 <div class="form-text">Mínimo 8 caracteres</div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirmarSenha" class="form-label">Confirmar Nova Senha <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required data-testid="input-confirmar-senha">
+                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required data-testid="input-confirmar-senha" placeholder="Confirme a nova senha">
                             </div>
                             <button type="submit" class="btn btn-primary" data-testid="btn-alterar-senha">
-                                <i class="bi bi-key"></i> Alterar Senha
+                                <i class="bi bi-key me-2"></i> Alterar Senha
                             </button>
                         </form>
                     </div>

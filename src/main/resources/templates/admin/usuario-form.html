@@ -5,10 +5,10 @@
 </head>
 <body>
     <div th:replace="~{fragments/layout :: content}">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 th:text="${isEdit ? 'Editar Usuário' : 'Novo Usuário'}"></h1>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h1 class="mb-0" th:text="${isEdit ? 'Editar Usuário' : 'Novo Usuário'}"></h1>
             <a href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-voltar">
-                <i class="bi bi-arrow-left"></i> Voltar
+                <i class="bi bi-arrow-left me-2"></i> Voltar
             </a>
         </div>
 
@@ -21,13 +21,13 @@
                             <input type="email" class="form-control" id="email" name="email"
                                    th:value="${usuario.email}"
                                    th:readonly="${isEdit}"
-                                   required data-testid="input-email">
+                                   required data-testid="input-email" placeholder="usuario@empresa.com">
                         </div>
                         <div class="col-md-6">
                             <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="nome" name="nome"
                                    th:value="${usuario.nome}"
-                                   required data-testid="input-nome">
+                                   required data-testid="input-nome" placeholder="Nome completo">
                         </div>
                         <div class="col-md-4">
                             <label for="role" class="form-label">Perfil <span class="text-danger">*</span></label>
@@ -47,14 +47,14 @@
                             <label for="senha" class="form-label">Senha <span class="text-danger" th:unless="${isEdit}">*</span><span th:if="${isEdit}"> (deixe em branco para não alterar)</span></label>
                             <input type="password" class="form-control" id="senha" name="senha"
                                    th:required="${not isEdit}"
-                                   data-testid="input-senha">
+                                   data-testid="input-senha" placeholder="Mínimo 8 caracteres">
                         </div>
                     </div>
-                    <hr>
+                    <hr style="border-color: var(--border-color);">
                     <div class="d-flex justify-content-end gap-2">
                         <a href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-cancelar">Cancelar</a>
                         <button type="submit" class="btn btn-primary" data-testid="btn-salvar">
-                            <i class="bi bi-save"></i> <span th:text="${isEdit ? 'Atualizar' : 'Criar'}"></span>
+                            <i class="bi bi-save me-2"></i> <span th:text="${isEdit ? 'Atualizar' : 'Criar'}"></span>
                         </button>
                     </div>
                 </form>

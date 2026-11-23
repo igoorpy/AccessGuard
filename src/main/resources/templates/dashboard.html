@@ -5,41 +5,44 @@
 </head>
 <body>
     <div th:replace="~{fragments/layout :: content}">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Dashboard</h1>
-            <span class="badge bg-primary" th:text="${usuario.role}">COLABORADOR</span>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h1 class="mb-0">Dashboard</h1>
+            <span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}">COLABORADOR</span>
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Informações do Usuário</h5>
-                        <table class="table table-borderless mb-0">
-                            <tr><th scope="row" style="width: 150px;">Nome</th><td th:text="${usuario.nome}"></td></tr>
-                            <tr><th scope="row">Email</th><td th:text="${usuario.email}"></td></tr>
-                            <tr><th scope="row">Perfil</th><td><span class="badge bg-secondary" th:text="${usuario.role}"></span></td></tr>
-                            <tr><th scope="row">Status</th><td>
-                                <span class="badge" th:class="${usuario.status == 'ATIVO' ? 'bg-success' : 'bg-danger'}" th:text="${usuario.status}"></span>
-                            </td></tr>
-                            <tr><th scope="row">Último Login</th><td th:text="${#temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm')}"></td></tr>
-                        </table>
+                        <h5 class="card-title"><i class="bi bi-person-circle me-2"></i>Informações do Usuário</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Nome</dt>
+                            <dd class="col-sm-8" th:text="${usuario.nome}"></dd>
+                            <dt class="col-sm-4">Email</dt>
+                            <dd class="col-sm-8" th:text="${usuario.email}"></dd>
+                            <dt class="col-sm-4">Perfil</dt>
+                            <dd class="col-sm-8"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
+                            <dt class="col-sm-4">Último Login</dt>
+                            <dd class="col-sm-8" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
+                        </dl>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
+                <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Ações Rápidas</h5>
+                        <h5 class="card-title"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
                         <div class="d-grid gap-2">
                             <a href="/perfil" class="btn btn-outline-primary" data-testid="btn-perfil">
-                                <i class="bi bi-person"></i> Meu Perfil
+                                <i class="bi bi-person me-2"></i> Meu Perfil
                             </a>
                             <a sec:authorize="hasRole('ADMIN')" href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-admin">
-                                <i class="bi bi-people-gear"></i> Admin Usuários
+                                <i class="bi bi-people-gear me-2"></i> Admin Usuários
                             </a>
                             <a sec:authorize="hasAnyRole('ADMIN', 'AUDITOR')" href="/auditoria" class="btn btn-outline-secondary" data-testid="btn-auditoria">
-                                <i class="bi bi-journal-text"></i> Auditoria
+                                <i class="bi bi-journal-text me-2"></i> Auditoria
                             </a>
                         </div>
                     </div>

@@ -5,8 +5,8 @@
 </head>
 <body>
     <div th:replace="~{fragments/layout :: content}">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Auditoria de Acessos</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h1 class="mb-0">Auditoria de Acessos</h1>
         </div>
 
         <!-- Filters Form -->
@@ -42,12 +42,12 @@
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100" data-testid="btn-filtrar">
-                            <i class="bi bi-funnel"></i> Filtrar
+                            <i class="bi bi-funnel me-2"></i> Filtrar
                         </button>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-12">
                         <a href="/auditoria" class="btn btn-outline-secondary btn-sm" data-testid="btn-limpar-filtros">
-                            <i class="bi bi-x-lg"></i> Limpar Filtros
+                            <i class="bi bi-x-lg me-2"></i> Limpar Filtros
                         </a>
                     </div>
                 </form>
@@ -59,7 +59,7 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0" data-testid="tabela-logs">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Data/Hora</th>
                                 <th>Usuário</th>
@@ -74,25 +74,25 @@
                                 <td th:text="${log.usuarioEmail != null ? log.usuarioEmail : '-' }"></td>
                                 <td th:text="${log.ip}"></td>
                                 <td>
-                                    <span class="badge" th:class="{
-                                        'bg-success': ${log.evento == 'LOGIN_SUCESSO'},
-                                        'bg-danger': ${log.evento == 'LOGIN_FALHA'} or ${log.evento == 'USUARIO_INEXISTENTE'} or ${log.evento == 'CONTA_BLOQUEADA'},
-                                        'bg-warning text-dark': ${log.evento == 'CONTA_DESBLOQUEADA'},
-                                        'bg-info': ${log.evento == 'SENHA_ALTERADA'} or ${log.evento == 'PERFIL_ALTERADO'},
-                                        'bg-secondary': ${log.evento == 'SESSAO_ENCERRADA'}
+                                    <span th:class="{
+                                        'badge badge-evento-sucesso': ${log.evento == 'LOGIN_SUCESSO'},
+                                        'badge badge-evento-falha': ${log.evento == 'LOGIN_FALHA'} or ${log.evento == 'USUARIO_INEXISTENTE'} or ${log.evento == 'CONTA_BLOQUEADA'},
+                                        'badge badge-evento-aviso': ${log.evento == 'CONTA_DESBLOQUEADA'},
+                                        'badge badge-evento-info': ${log.evento == 'SENHA_ALTERADA'} or ${log.evento == 'PERFIL_ALTERADO'},
+                                        'badge badge-evento-neutro': ${log.evento == 'SESSAO_ENCERRADA'}
                                     }" th:text="${log.evento}"></span>
                                 </td>
                                 <td th:text="${log.detalhes != null ? log.detalhes : '-' }" class="text-truncate" style="max-width: 300px;"></td>
                             </tr>
                             <tr th:if="${logs.empty}">
-                                <td colspan="5" class="text-center py-4 text-muted">Nenhum log encontrado</td>
+                                <td colspan="5" class="text-center py-4 text-secondary">Nenhum log encontrado</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <!-- Pagination -->
-            <div th:if="${logs.totalPages > 1}" class="card-footer">
+            <div th:if="${logs.totalPages > 1}" class="card-footer" style="background: transparent; border-top: 1px solid var(--border-color);">
                 <nav aria-label="Pagination">
                     <ul class="pagination mb-0 justify-content-center">
                         <li class="page-item" th:classappend="${logs.first ? 'disabled' : ''}">
