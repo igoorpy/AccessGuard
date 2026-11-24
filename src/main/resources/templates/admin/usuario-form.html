@@ -19,6 +19,7 @@
                                th:value="${usuario.email}"
                                th:readonly="${isEdit}"
                                required data-testid="input-email" placeholder="usuario@empresa.com">
+                        <div class="form-text" th:if="${isEdit}">O email não pode ser alterado após a criação.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
@@ -45,9 +46,10 @@
                         <input type="password" class="form-control" id="senha" name="senha"
                                th:required="${not isEdit}"
                                data-testid="input-senha" placeholder="Mínimo 8 caracteres">
+                        <div class="form-text">Mínimo 8 caracteres. <span th:if="${isEdit}">Deixe em branco para manter a senha atual.</span></div>
                     </div>
                 </div>
-                <hr style="border-color: var(--border-color);">
+                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
                 <div class="d-flex justify-content-end gap-2">
                     <a href="/admin/usuarios" class="btn btn-outline-secondary" data-testid="btn-cancelar">Cancelar</a>
                     <button type="submit" class="btn btn-primary" data-testid="btn-salvar">

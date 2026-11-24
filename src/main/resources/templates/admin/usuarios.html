@@ -14,7 +14,8 @@
         <div class="card-body">
             <form method="get" class="row g-3" data-testid="search-form">
                 <div class="col-md-6">
-                    <input type="text" class="form-control" name="search" placeholder="Buscar por email ou nome" th:value="${search}" data-testid="input-search">
+                    <label for="search" class="form-label visually-hidden">Buscar usuários</label>
+                    <input type="text" class="form-control" name="search" placeholder="Buscar por email ou nome" th:value="${search}" data-testid="input-search" id="search">
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-outline-primary w-100" data-testid="btn-search">
@@ -48,13 +49,17 @@
                     </thead>
                     <tbody>
                         <tr th:each="u : ${usuarios.content}" data-testid="usuario-row">
-                            <td th:text="${u.nome}"></td>
+                            <td>
+                                <div class="fw-medium" th:text="${u.nome}"></div>
+                            </td>
                             <td th:text="${u.email}"></td>
                             <td><span th:class="${'badge badge-role-' + #strings.toLowerCase(u.role)}" th:text="${u.role}"></span></td>
                             <td>
                                 <span th:class="${u.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${u.status}"></span>
                             </td>
-                            <td th:text="${u.tentativasFalha}"></td>
+                            <td>
+                                <span th:class="${u.tentativasFalha > 0 ? 'badge bg-warning text-dark' : 'badge bg-secondary'}" th:text="${u.tentativasFalha}"></span>
+                            </td>
                             <td th:text="${u.ultimoLoginEm != null ? #temporals.format(u.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">
@@ -70,7 +75,10 @@
                             </td>
                         </tr>
                         <tr th:if="${usuarios.empty}">
-                            <td colspan="7" class="text-center py-4 text-secondary">Nenhum usuário encontrado</td>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+                                Nenhum usuário encontrado
+                            </td>
                         </tr>
                     </tbody>
                 </table>

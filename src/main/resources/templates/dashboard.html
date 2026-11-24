@@ -7,30 +7,105 @@
         <span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}">COLABORADOR</span>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6 mb-4 mb-md-0">
-            <div class="card h-100">
+    <!-- Metrics Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-start border-4 border-primary">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-person-circle me-2"></i>Informações do Usuário</h5>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-secondary mb-1 small text-uppercase fw-medium">Último Login</p>
+                            <p class="mb-0 fw-semibold" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></p>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-lg">
+                            <i class="bi bi-clock-history text-primary fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-start border-4 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-secondary mb-1 small text-uppercase fw-medium">Status da Conta</p>
+                            <span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-lg">
+                            <i class="bi bi-shield-check text-success fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-start border-4 border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-secondary mb-1 small text-uppercase fw-medium">Perfil</p>
+                            <span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-lg">
+                            <i class="bi bi-person-badge text-info fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-start border-4 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-secondary mb-1 small text-uppercase fw-medium">Tentativas Falhas</p>
+                            <p class="mb-0 fw-semibold" th:text="${usuario.tentativasFalha}">0</p>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-lg">
+                            <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <!-- Informações da Conta -->
+        <div class="col-12 col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-circle me-2"></i>Informações da Conta</h5>
+                    <a href="/perfil" class="btn btn-sm btn-outline-primary" data-testid="btn-ver-perfil">
+                        <i class="bi bi-arrow-up-right me-1"></i> Ver Perfil
+                    </a>
+                </div>
+                <div class="card-body">
                     <dl class="row mb-0">
-                        <dt class="col-sm-4">Nome</dt>
-                        <dd class="col-sm-8" th:text="${usuario.nome}"></dd>
-                        <dt class="col-sm-4">Email</dt>
-                        <dd class="col-sm-8" th:text="${usuario.email}"></dd>
-                        <dt class="col-sm-4">Perfil</dt>
-                        <dd class="col-sm-8"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
-                        <dt class="col-sm-4">Status</dt>
-                        <dd class="col-sm-8"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
-                        <dt class="col-sm-4">Último Login</dt>
-                        <dd class="col-sm-8" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
+                        <dt class="col-sm-3">Nome</dt>
+                        <dd class="col-sm-9" th:text="${usuario.nome}"></dd>
+                        <dt class="col-sm-3">Email</dt>
+                        <dd class="col-sm-9" th:text="${usuario.email}"></dd>
+                        <dt class="col-sm-3">Perfil</dt>
+                        <dd class="col-sm-9"><span th:class="${'badge badge-role-' + #strings.toLowerCase(usuario.role)}" th:text="${usuario.role}"></span></dd>
+                        <dt class="col-sm-3">Status</dt>
+                        <dd class="col-sm-9"><span th:class="${usuario.status == 'ATIVO' ? 'badge badge-status-ativo' : 'badge badge-status-bloqueado'}" th:text="${usuario.status}"></span></dd>
+                        <dt class="col-sm-3">Último Login</dt>
+                        <dd class="col-sm-9" th:text="${usuario.ultimoLoginEm != null ? #temporals.format(usuario.ultimoLoginEm, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></dd>
                     </dl>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+
+        <!-- Ações Rápidas -->
+        <div class="col-12 col-lg-5">
             <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
                     <div class="d-grid gap-2">
                         <a href="/perfil" class="btn btn-outline-primary" data-testid="btn-perfil">
                             <i class="bi bi-person me-2"></i> Meu Perfil

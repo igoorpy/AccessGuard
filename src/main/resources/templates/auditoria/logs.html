@@ -8,6 +8,9 @@
 
     <!-- Filters Form -->
     <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i>Filtros</h5>
+        </div>
         <div class="card-body">
             <form method="get" class="row g-3" data-testid="filtros-form">
                 <div class="col-md-3">
@@ -67,16 +70,23 @@
                     </thead>
                     <tbody>
                         <tr th:each="log : ${logs.content}" data-testid="log-row">
-                            <td th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                            <td>
+                                <span class="fw-monospace" th:text="${#temporals.format(log.criadoEm, 'dd/MM/yyyy HH:mm:ss')}"></span>
+                            </td>
                             <td th:text="${log.usuarioEmail != null ? log.usuarioEmail : '-' }"></td>
-                            <td th:text="${log.ip}"></td>
+                            <td>
+                                <span class="fw-monospace" th:text="${log.ip}"></span>
+                            </td>
                             <td>
                                 <span th:class="${log.evento.name == 'LOGIN_SUCESSO' ? 'badge badge-evento-sucesso' : (log.evento.name == 'LOGIN_FALHA' or log.evento.name == 'USUARIO_INEXISTENTE' or log.evento.name == 'CONTA_BLOQUEADA' ? 'badge badge-evento-falha' : (log.evento.name == 'CONTA_DESBLOQUEADA' ? 'badge badge-evento-aviso' : (log.evento.name == 'SENHA_ALTERADA' or log.evento.name == 'PERFIL_ALTERADO' ? 'badge badge-evento-info' : (log.evento.name == 'SESSAO_ENCERRADA' ? 'badge badge-evento-neutro' : 'badge'))))}" th:text="${log.evento}"></span>
                             </td>
                             <td th:text="${log.detalhes != null ? log.detalhes : '-' }" class="text-truncate" style="max-width: 300px;"></td>
                         </tr>
                         <tr th:if="${logs.empty}">
-                            <td colspan="5" class="text-center py-4 text-secondary">Nenhum log encontrado</td>
+                            <td colspan="5" class="text-center py-5 text-secondary">
+                                <i class="bi bi-journal-text fs-1 d-block mb-2 opacity-50"></i>
+                                Nenhum log encontrado
+                            </td>
                         </tr>
                     </tbody>
                 </table>
