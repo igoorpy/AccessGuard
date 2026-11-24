@@ -86,7 +86,7 @@ public class AdminController {
         }
 
         Usuario usuario = usuarioOpt.get();
-        model.addAttribute("usuario", new UsuarioForm(usuario.getEmail(), null, usuario.getNome(), usuario.getRole()));
+        model.addAttribute("usuario", new UsuarioForm(usuario.getEmail(), null, usuario.getNome(), usuario.getRole(), usuario.getStatus()));
         model.addAttribute("usuarioId", id);
         model.addAttribute("roles", Role.values());
         model.addAttribute("statuses", StatusUsuario.values());

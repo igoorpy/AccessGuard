@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -162,5 +163,38 @@ class WebControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?logout"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void adminUsuarioEditarGetRetorna200EPopulaFormulario() throws Exception {
+        mockMvc.perform(get("/admin/usuarios/{id}/editar", admin.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/usuario-form"))
+                .andExpect(model().attributeExists("usuario"))
+                .andExpect(model().attributeExists("usuarioId"))
+                .andExpect(model().attributeExists("roles"))
+                .andExpect(model().attributeExists("statuses"))
+                .andExpect(model().attributeExists("isEdit"))
+                .andExpect(model().attribute("usuarioId", admin.getId()));
+    }
+
+    @Test
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void adminUsuarioEditarPostComCsrfValidoAtualizaNomeRoleStatusERedireciona() throws Exception {
+        mockMvc.perform(post("/admin/usuarios/{id}/editar", admin.getId())
+                        .param("email", "admin@test.com")
+                        .param("nome", "Admin Atualizado")
+                        .param("role", "AUDITOR")
+                        .param("status", "BLOQUEADO")
+                        .param("senha", "")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/usuarios"));
+
+        Usuario atualizado = usuarioRepository.findById(admin.getId()).orElseThrow();
+        assertEquals("Admin Atualizado", atualizado.getNome());
+        assertEquals(Role.AUDITOR, atualizado.getRole());
+        assertEquals(StatusUsuario.BLOQUEADO, atualizado.getStatus());
     }
 }
